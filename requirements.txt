@@ -9,7 +9,7 @@ sentencepiece
 six
 spacy==3.2.0
 textstat
-torch>=1.9
+torch>=1.12.1
 tqdm
 transformers==4.18.0
 visdom
