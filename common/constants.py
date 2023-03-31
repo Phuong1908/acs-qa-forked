@@ -83,7 +83,7 @@ SPECIAL_TOKENS = {"pad": "<pad>", "oov": "<oov>", "sos": "<sos>", "eos": "<eos>"
 SPECIAL_TOKEN2ID = {"<pad>": 0, "<oov>": 1, "<sos>": 2, "<eos>": 3}
 
 # spaCy
-NLP = spacy.load("en")
+NLP = spacy.load("en_core_web_sm")
 # prevent tokenizer split special tokens
 for special_token in SPECIAL_TOKENS.values():
     NLP.tokenizer.add_special_case(special_token, [{ORTH: special_token}])
