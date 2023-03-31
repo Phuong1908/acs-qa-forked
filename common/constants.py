@@ -89,7 +89,8 @@ for special_token in SPECIAL_TOKENS.values():
     NLP.tokenizer.add_special_case(special_token, [{ORTH: special_token}])
 
 # benepar
-PARSER = benepar.Parser("benepar_en2")
+benepar.download("benepar_en3")
+PARSER = benepar.Parser("benepar_en3")
 
 # glove
 GLOVE = gensim.models.KeyedVectors.load_word2vec_format(GLOVE_BIN_PATH, binary=True)
