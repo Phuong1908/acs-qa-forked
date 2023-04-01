@@ -11,13 +11,12 @@ import benepar
 print("Start loading constants ...")
 
 # data path
-current_path = os.getcwd().split("/")
+current_path = os.getcwd()
 #current_path = "/Users/bangliu/Documents/Work/CurrentWork/FQG/src/model/FactorizedQG".split("/")
 
-DATA_PATH = "/".join(current_path[:-4]) + "/Datasets/"
-PROJECT_PATH = "/".join(current_path[:-4]) + "/FQG/"
+DATA_PATH = current_path + "/Datasets/"
+PROJECT_PATH = current_path
 
-CODE_PATH = PROJECT_PATH + "src/model/FactorizedQG/"
 OUTPUT_PATH = PROJECT_PATH + "output/"
 CHECKPOINT_PATH = PROJECT_PATH + "output/checkpoint/"
 FIGURE_PATH = PROJECT_PATH + "output/figure/"
@@ -84,16 +83,17 @@ SPECIAL_TOKENS = {"pad": "<pad>", "oov": "<oov>", "sos": "<sos>", "eos": "<eos>"
 SPECIAL_TOKEN2ID = {"<pad>": 0, "<oov>": 1, "<sos>": 2, "<eos>": 3}
 
 # spaCy
-NLP = spacy.load("en")
+NLP = spacy.load("en_core_web_sm")
 # prevent tokenizer split special tokens
 for special_token in SPECIAL_TOKENS.values():
     NLP.tokenizer.add_special_case(special_token, [{ORTH: special_token}])
 
 # benepar
-PARSER = benepar.Parser("benepar_en2")
+benepar.download("benepar_en3")
+PARSER = benepar.Parser("benepar_en3")
 
 # glove
-GLOVE = gensim.models.KeyedVectors.load_word2vec_format(GLOVE_BIN_PATH, binary=True)
+GLOVE = gensim.models.KeyedVectors.load_word2vec_format(glove_file, binary=False, no_header=True)
 
 # device
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
