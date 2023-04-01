@@ -93,7 +93,7 @@ benepar.download("benepar_en3")
 PARSER = benepar.Parser("benepar_en3")
 
 # glove
-GLOVE = gensim.models.KeyedVectors.load_word2vec_format(GLOVE_BIN_PATH, binary=True)
+GLOVE = gensim.models.KeyedVectors.load_word2vec_format(glove_file, binary=False, no_header=True)
 
 # device
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
