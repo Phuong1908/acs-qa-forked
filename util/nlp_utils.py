@@ -222,9 +222,9 @@ def get_semantic_related_words(token, topN):
         semantic_related = [token]
         return semantic_related
 
-    if token in GLOVE.vocab:
+    if token in GLOVE.key_to_index:
         token_in_glove = token
-    elif token.lower() in GLOVE.vocab:
+    elif token.lower() in GLOVE.key_to_index:
         token_in_glove = token.lower()
     else:
         token_in_glove = None
