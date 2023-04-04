@@ -17,7 +17,7 @@ current_path = os.getcwd()
 DATA_PATH = current_path + "/Datasets/"
 PROJECT_PATH = current_path
 
-OUTPUT_PATH = PROJECT_PATH + "output/"
+OUTPUT_PATH = PROJECT_PATH + "/output/"
 CHECKPOINT_PATH = PROJECT_PATH + "output/checkpoint/"
 FIGURE_PATH = PROJECT_PATH + "output/figure/"
 LOG_PATH = PROJECT_PATH + "output/log/"

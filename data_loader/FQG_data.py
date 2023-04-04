@@ -539,18 +539,18 @@ def prepro(config):
         test_eval = load(config.test_eval_file)
 
     # print to txt to debug
-    for k in emb_dicts:
-        write_dict(emb_dicts[k], OUTPUT_PATH + "debug/emb_dicts_" + str(k) + ".txt")
-    for k in counters:
-        write_counter(counters[k], OUTPUT_PATH + "debug/counters_" + str(k) + ".txt")
-    write_example(train_examples[5], OUTPUT_PATH + "debug/train_example.txt")
-    write_example(dev_examples[5], OUTPUT_PATH + "debug/dev_example.txt")
-    write_example(test_examples[5], OUTPUT_PATH + "debug/test_example.txt")
-    write_dict(train_meta, OUTPUT_PATH + "debug/train_meta.txt")
-    write_dict(dev_meta, OUTPUT_PATH + "debug/dev_meta.txt")
-    write_dict(test_meta, OUTPUT_PATH + "debug/test_meta.txt")
-    write_dict(related_words_dict, OUTPUT_PATH + "debug/related_words_dict.txt")
-    write_2d_list(related_words_ids_mat, OUTPUT_PATH + "debug/related_words_ids_mat.txt")
+    # for k in emb_dicts:
+    #     write_dict(emb_dicts[k], OUTPUT_PATH + "debug/emb_dicts_" + str(k) + ".txt")
+    # for k in counters:
+    #     write_counter(counters[k], OUTPUT_PATH + "debug/counters_" + str(k) + ".txt")
+    # write_example(train_examples[5], OUTPUT_PATH + "debug/train_example.txt")
+    # write_example(dev_examples[5], OUTPUT_PATH + "debug/dev_example.txt")
+    # write_example(test_examples[5], OUTPUT_PATH + "debug/test_example.txt")
+    # write_dict(train_meta, OUTPUT_PATH + "debug/train_meta.txt")
+    # write_dict(dev_meta, OUTPUT_PATH + "debug/dev_meta.txt")
+    # write_dict(test_meta, OUTPUT_PATH + "debug/test_meta.txt")
+    # write_dict(related_words_dict, OUTPUT_PATH + "debug/related_words_dict.txt")
+    # write_2d_list(related_words_ids_mat, OUTPUT_PATH + "debug/related_words_ids_mat.txt")
 
 
 def write_example(e, filename):
