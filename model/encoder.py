@@ -47,7 +47,7 @@ class Encoder(nn.Module):
         # sorted_emb shape: [seq_len, batch_size, hidden_dim] [100, 32, 412]
         sorted_input_emb, sorted_lengths, sorted_idx = to_sorted_tensor(
             input_emb, lengths, sort_dim=1, device=DEVICE)
-        emb = pack(sorted_input_emb, sorted_lengths, batch_first=False)
+        emb = pack(sorted_input_emb, sorted_lengths.cpu(), batch_first=False)
         self.rnn.flatten_parameters()
         outputs, hidden_t = self.rnn(emb, hidden)
         # hidden_t shape:  [num_layers, batch_size, hidden_dim] [2, 32, 256]
