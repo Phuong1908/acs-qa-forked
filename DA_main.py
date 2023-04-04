@@ -6,7 +6,7 @@ The selected data can be read by QG data loader, and generate questions.
 """
 # !!! for running experiments on Venus
 from config import *
-from common.constants import EXP_PLATFORM
+from common.constants import EXP_PLATFORM, DATA_PATH
 if EXP_PLATFORM.lower() == "venus":
     from nltk import data
     data.path.append('./nltk_need/nltk_data/')
@@ -129,8 +129,6 @@ def sentences2augmented_sentences(input_path, output_path, start_index, end_inde
 
 def main(args):
     # prepro files
-    CURRENT_PATH = os.getcwd().split("/")
-    DATA_PATH = "/".join(CURRENT_PATH[:-4]) + "/Datasets/"
 
     DATA_ACS_INFO_FILE_PATH = DATA_PATH + "processed/SQuAD1.1-Zhou/squad_ans_clue_style_info.pkl"
     SAMPLE_PROBS_FILE_PATH = DATA_PATH + "processed/SQuAD1.1-Zhou/squad_sample_probs.pkl"
