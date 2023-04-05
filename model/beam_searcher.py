@@ -94,7 +94,7 @@ class BeamSearcher(object):
 
         # best_output_accumulate_scores_id is flattened beam x word array, so calculate which
         # word and beam each score came from
-        father_beam_idx = best_output_accumulate_scores_id / vocab_plus_input_size
+        father_beam_idx = best_output_accumulate_scores_id // vocab_plus_input_size
         # father_beam_idx: 1d tensor, beam_size length. It indicates the top beam_size current best scores
         # come from which previous beam. Therefore, each item in it will
         # be <= beam_size -1. For example: tensor([2, 0, 1, 2, 3])
