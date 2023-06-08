@@ -235,9 +235,9 @@ def get_data_loaders(args, tokenizer):
     """ Prepare the dataset for training and evaluation """
     datasets_raw = {}
     logger.info("Loading training data")
-    datasets_raw['train'] = get_dataset(tokenizer, args.train_dataset_cache, args.train_dataset_path, 'train', args.filetype, args.debug)
+    datasets_raw['train'] = get_dataset(tokenizer, None, args.train_dataset_path, 'train', args.filetype, args.debug)
     logger.info("Loading validation data")
-    datasets_raw['valid'] = get_dataset(tokenizer, args.dev_dataset_cache, args.dev_dataset_path, 'dev', args.filetype, args.debug)
+    datasets_raw['valid'] = get_dataset(tokenizer, None, args.dev_dataset_path, 'dev', args.filetype, args.debug)
 
     logger.info("Build inputs and labels")
     datasets = {
