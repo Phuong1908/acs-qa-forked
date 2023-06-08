@@ -221,7 +221,7 @@ def get_positional_dataset_from_file(tokenizer, file, filetype="squad", debug=Fa
 
         total_seq_len = len(tokenized_para) + len(tokenized_answer) + len(tokenized_question) + len(tokenized_clue) + len(tokenized_qtype) + 6
 
-        if total_seq_len > tokenizer.max_len:
+        if total_seq_len > tokenizer.model_max_length:
             # Heuristic to chop off extra tokens in paragraphs
             tokenized_para = tokenized_para[:-1 * (total_seq_len - tokenizer.max_len + 1)]
             truncated_sequences += 1
