@@ -5,11 +5,11 @@ python3 run_glue.py \
         --do_train \
         --do_eval \
         --do_lower_case \
-        --data_dir /Datasets/glue_data/MRPC/ \
+        --data_dir /content/acsqg/Datasets/glue_data/MRPC/ \
         --max_seq_length 128 \
         --per_gpu_eval_batch_size=8   \
         --per_gpu_train_batch_size=8   \
         --learning_rate 2e-5 \
         --num_train_epochs 1.0 \
-        --output_dir /output/ET/xlnet-base-cased \
+        --output_dir /content/acsqg/output/ET/xlnet-base-cased \
         --overwrite_output_dir
