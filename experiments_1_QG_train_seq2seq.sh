@@ -8,5 +8,6 @@ python3 QG_main.py \
         --use_style_info \
         --use_clue_info \
         -beam_size 20 \
-        --use_refine_copy_tgt_src
+        --use_refine_copy_tgt_src \
+        --not_processed_data
 # NOTICE: if you haven't process data, add --not_processed_data
