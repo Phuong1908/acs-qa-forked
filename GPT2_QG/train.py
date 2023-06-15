@@ -17,13 +17,6 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, TensorDataset
 import argparse
 from .dataloader import get_dataset
-
-from common.constants import EXP_PLATFORM
-# !!! for running experiments on Venus
-if EXP_PLATFORM.lower() == "venus":
-    from pip._internal import main as pipmain
-    pipmain(["install", "pytorch-ignite"])
-    pipmain(["install", "transformers"])
 from transformers import (WEIGHTS_NAME, CONFIG_NAME, AdamW, GPT2Config, GPT2LMHeadModel, GPT2Tokenizer)
 from ignite.engine import Engine, Events
 from ignite.handlers import ModelCheckpoint
@@ -235,9 +228,9 @@ def get_data_loaders(args, tokenizer):
     """ Prepare the dataset for training and evaluation """
     datasets_raw = {}
     logger.info("Loading training data")
-    datasets_raw['train'] = get_dataset(tokenizer, None, args.train_dataset_path, 'train', args.filetype, args.debug)
+    datasets_raw['train'] = get_dataset(tokenizer, args.train_dataset_cache_path, args.train_dataset_path, 'train', args.filetype, args.debug)
     logger.info("Loading validation data")
-    datasets_raw['valid'] = get_dataset(tokenizer, None, args.dev_dataset_path, 'dev', args.filetype, args.debug)
+    datasets_raw['valid'] = get_dataset(tokenizer, args.dev_dataset_cache_path, args.dev_dataset_path, 'dev', args.filetype, args.debug)
 
     logger.info("Build inputs and labels")
     datasets = {
@@ -394,8 +387,10 @@ def train():
 
         checkpoint_handler = ModelCheckpoint(args.output_dir, 'checkpoint', save_interval=1, n_saved=3)  # !!!NOTICE: if fill exist, it will report error. set require_empty=False can avoid this.
         trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_handler, {'mymodel': getattr(model, 'module', model)})  # "getattr" take care of distributed encapsulation
-
-        torch.save(args, args.output_dir + '/model_training_args.bin')
+  
+        model.save_pretrained(args.output_dir)
+  
+        # torch.save(args, args.output_dir + '/model_training_args.bin')
         getattr(model, 'module', model).config.to_json_file(os.path.join(args.output_dir, CONFIG_NAME))
         tokenizer.save_vocabulary(args.output_dir)
 

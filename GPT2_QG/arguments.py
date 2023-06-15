@@ -11,6 +11,12 @@ parser.add_argument(
     help="Path of the train/dev split in the dataset. Default files are instances_train.pickle, instances_dev.pickle."
 )
 parser.add_argument(
+    "--train_dataset_cache_path", type=str, default="",
+)
+parser.add_argument(
+    "--dev_dataset_cache_path", type=str, default="",
+)
+parser.add_argument(
     "--filetype", type=str, default="squad",
     help="Path of the train/dev split in the dataset. Default files are instances_train.pickle, instances_dev.pickle."
 )
