@@ -385,7 +385,7 @@ def train():
         # tb_logger.attach(trainer, log_handler=OptimizerParamsHandler(optimizer), event_name=Events.ITERATION_STARTED)
         # tb_logger.attach(evaluator, log_handler=OutputHandler(tag="validation", metric_names=list(metrics.keys()), another_engine=trainer), event_name=Events.EPOCH_COMPLETED)
 
-        checkpoint_handler = ModelCheckpoint(args.output_dir, 'checkpoint', save_interval=1, n_saved=3)  # !!!NOTICE: if fill exist, it will report error. set require_empty=False can avoid this.
+        checkpoint_handler = ModelCheckpoint(args.output_dir, 'checkpoint', save_interval=None, n_saved=3)  # !!!NOTICE: if fill exist, it will report error. set require_empty=False can avoid this.
         trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_handler, {'mymodel': getattr(model, 'module', model)})  # "getattr" take care of distributed encapsulation
   
         model.save_pretrained(args.output_dir)
