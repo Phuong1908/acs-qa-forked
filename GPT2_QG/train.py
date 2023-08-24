@@ -309,13 +309,12 @@ def train():
     # Training function and trainer
     def update(engine, batch):
         model.train()
-        batch = tuple(input_tensor.to(args.device) for input_tensor in batch)
-        cur_input_ids = batch[0]
-        cur_lm_labels = batch[1]
-        cur_token_type_ids = batch[2]
-        model_outputs = model(input_ids=cur_input_ids, labels=cur_lm_labels, token_type_ids=cur_token_type_ids)
-        lm_loss = model_outputs[0]
-        loss = lm_loss / args.gradient_accumulation_steps
+        inputs = tuple(input_tensor.to(args.device) for input_tensor in batch) 
+        cur_input_ids, cur_lm_labels, cur_token_type_ids = inputs
+        outputs = model(input_ids=cur_input_ids, token_type_ids=cur_token_type_ids, labels=cur_lm_labels)
+        loss = outputs[0]
+        if args.gradient_accumulation_steps > 1:
+            loss = loss / args.gradient_accumulation_steps
         if args.fp16:
             with amp.scale_loss(loss, optimizer) as scaled_loss:
                 scaled_loss.backward()
