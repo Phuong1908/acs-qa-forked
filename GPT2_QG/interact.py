@@ -80,11 +80,6 @@ import torch
 import torch.nn.functional as F
 from datetime import datetime
 from shutil import copy2, move
-from common.constants import EXP_PLATFORM
-# !!! for running experiments on Venus
-if EXP_PLATFORM.lower() == "venus":
-    from pip._internal import main as pipmain
-    pipmain(["install", "transformers"])
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from .train import SPECIAL_TOKENS
 from .train import build_para_only_input_from_segments, build_acsq_only_input_from_segments

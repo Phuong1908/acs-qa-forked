@@ -17,13 +17,6 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, TensorDataset
 import argparse
 from .dataloader import get_dataset
-
-from common.constants import EXP_PLATFORM
-# !!! for running experiments on Venus
-if EXP_PLATFORM.lower() == "venus":
-    from pip._internal import main as pipmain
-    pipmain(["install", "pytorch-ignite"])
-    pipmain(["install", "transformers"])
 from transformers import (WEIGHTS_NAME, CONFIG_NAME, AdamW, GPT2Config, GPT2LMHeadModel, GPT2Tokenizer)
 from ignite.engine import Engine, Events
 from ignite.handlers import ModelCheckpoint
@@ -62,15 +55,16 @@ def average_distributed_scalar(scalar, args):
     return scalar_t.item()
 
 
-def pad_dataset(dataset, padding=0):
+def pad_dataset(dataset, dataset_name, padding=0, ):
     """ Pad the dataset. This could be optimized by defining a Dataset class and padd only batches but this is simpler. """
     max_l = max(len(x) for x in dataset["input_ids"])
+    masked_value = -100 if dataset_name == 'train' else -1
     for name in MODEL_INPUTS:
-        dataset[name] = [x + [padding if name != "lm_labels" else -1] * (max_l - len(x)) for x in dataset[name]]
+        dataset[name] = [x + [padding if name != "lm_labels" else masked_value] * (max_l - len(x)) for x in dataset[name]]
     return dataset
 
 
-def build_input_from_segments(data_point, tokenizer, with_eos=True):
+def build_input_from_segments(data_point, tokenizer, dataset_name, with_eos=True):
     """ Build a sequence of input.
         `<sos> .. paragraph text ..
          <clue> .. clue span ..
@@ -80,6 +74,8 @@ def build_input_from_segments(data_point, tokenizer, with_eos=True):
     """
     sos, eos, paragraph, clue, answer, style, question = \
         tokenizer.convert_tokens_to_ids(SPECIAL_TOKENS[:-1])
+
+    masked_value = -100 if dataset_name == 'train' else -1
 
     curr_para = data_point['paragraph']
     curr_ans = data_point['answer']
@@ -103,32 +99,32 @@ def build_input_from_segments(data_point, tokenizer, with_eos=True):
     if clue_exist:
         token_types[clue_start + 1:clue_end + 1] = [clue] * (clue_end - clue_start)
     token_types[ans_start + 1:ans_end + 1] = [answer] * (ans_end - ans_start)
-    lm_labels = [-1 for _ in range(len(curr_para) + 1)]
+    lm_labels = [masked_value for _ in range(len(curr_para) + 1)]
 
     # <sos> paragraph <answer> answer
     sequence.extend([answer] + curr_ans)
     token_types.extend([answer for _ in range(len(curr_ans) + 1)])
-    lm_labels.extend([-1 for _ in range(len(curr_ans) + 1)])
+    lm_labels.extend([masked_value for _ in range(len(curr_ans) + 1)])
 
     # <sos> paragraph <answer> answer <clue> clue
     sequence.extend([clue] + curr_clue)
     token_types.extend([clue for _ in range(len(curr_clue) + 1)])
-    lm_labels.extend([-1 for _ in range(len(curr_clue) + 1)])
+    lm_labels.extend([masked_value for _ in range(len(curr_clue) + 1)])
 
     # <sos> paragraph <answer> answer <clue> clue <style> style
     sequence.extend([style] + curr_style)
     token_types.extend([style for _ in range(len(curr_style) + 1)])
-    lm_labels.extend([-1 for _ in range(len(curr_style) + 1)])
+    lm_labels.extend([masked_value for _ in range(len(curr_style) + 1)])
 
     # <sos> paragraph <answer> answer <clue> clue <style> style <question> question [<eos>]
     if with_eos is True:
         sequence.extend([question] + curr_ques + [eos])
         token_types.extend([question for _ in range(len(curr_ques) + 2)])
-        lm_labels.extend([-1] + curr_ques + [eos])
+        lm_labels.extend([masked_value] + curr_ques + [eos])
     else:
         sequence.extend([question] + curr_ques)
         token_types.extend([question for _ in range(len(curr_ques) + 1)])
-        lm_labels.extend([-1] + curr_ques)
+        lm_labels.extend([masked_value] + curr_ques)
 
     assert len(sequence) == len(token_types)
     assert len(token_types) == len(lm_labels)
@@ -164,7 +160,7 @@ def build_para_only_input_from_segments(data_point, tokenizer):
     if clue_exist:
         token_types[clue_start + 1:clue_end + 1] = [clue] * (clue_end - clue_start)
     token_types[ans_start + 1:ans_end + 1] = [answer] * (ans_end - ans_start)
-    lm_labels = [-1 for _ in range(len(curr_para) + 1)]
+    lm_labels = [-100 for _ in range(len(curr_para) + 1)]
 
     assert len(sequence) == len(token_types)
     assert len(token_types) == len(lm_labels)
@@ -198,27 +194,27 @@ def build_acsq_only_input_from_segments(data_point, tokenizer, with_eos=True):
     # <sos> paragraph <answer> answer
     sequence.extend([answer] + curr_ans)
     token_types.extend([answer for _ in range(len(curr_ans) + 1)])
-    lm_labels.extend([-1 for _ in range(len(curr_ans) + 1)])
+    lm_labels.extend([-100 for _ in range(len(curr_ans) + 1)])
 
     # <sos> paragraph <answer> answer <clue> clue
     sequence.extend([clue] + curr_clue)
     token_types.extend([clue for _ in range(len(curr_clue) + 1)])
-    lm_labels.extend([-1 for _ in range(len(curr_clue) + 1)])
+    lm_labels.extend([-100 for _ in range(len(curr_clue) + 1)])
 
     # <sos> paragraph <answer> answer <clue> clue <style> style
     sequence.extend([style] + curr_style)
     token_types.extend([style for _ in range(len(curr_style) + 1)])
-    lm_labels.extend([-1 for _ in range(len(curr_style) + 1)])
+    lm_labels.extend([-100 for _ in range(len(curr_style) + 1)])
 
     # <sos> paragraph <answer> answer <clue> clue <style> style <question> question [<eos>]
     if with_eos is True:
         sequence.extend([question] + curr_ques + [eos])
         token_types.extend([question for _ in range(len(curr_ques) + 2)])
-        lm_labels.extend([-1] + curr_ques + [eos])
+        lm_labels.extend([-100] + curr_ques + [eos])
     else:
         sequence.extend([question] + curr_ques)
         token_types.extend([question for _ in range(len(curr_ques) + 1)])
-        lm_labels.extend([-1] + curr_ques)
+        lm_labels.extend([-100] + curr_ques)
 
     assert len(sequence) == len(token_types)
     assert len(token_types) == len(lm_labels)
@@ -235,9 +231,9 @@ def get_data_loaders(args, tokenizer):
     """ Prepare the dataset for training and evaluation """
     datasets_raw = {}
     logger.info("Loading training data")
-    datasets_raw['train'] = get_dataset(tokenizer, None, args.train_dataset_path, 'train', args.filetype, args.debug)
+    datasets_raw['train'] = get_dataset(tokenizer, args.train_dataset_cache_path, args.train_dataset_path, 'train', args.filetype, args.debug)
     logger.info("Loading validation data")
-    datasets_raw['valid'] = get_dataset(tokenizer, None, args.dev_dataset_path, 'dev', args.filetype, args.debug)
+    datasets_raw['valid'] = get_dataset(tokenizer, args.dev_dataset_cache_path, args.dev_dataset_path, 'dev', args.filetype, args.debug)
 
     logger.info("Build inputs and labels")
     datasets = {
@@ -247,14 +243,14 @@ def get_data_loaders(args, tokenizer):
 
     for dataset_name, dataset in datasets_raw.items():
         for data_point in dataset:
-            instance, _ = build_input_from_segments(data_point, tokenizer)
+            instance, _ = build_input_from_segments(data_point, tokenizer, dataset_name)
             for input_name, input_array in instance.items():
                 datasets[dataset_name][input_name].append(input_array)
 
     logger.info("Pad inputs and convert to Tensor")
     tensor_datasets = {"train": [], "valid": []}
     for dataset_name, dataset in datasets.items():
-        dataset = pad_dataset(dataset, padding=tokenizer.convert_tokens_to_ids(SPECIAL_TOKENS[-1]))
+        dataset = pad_dataset(dataset, dataset_name, padding=tokenizer.convert_tokens_to_ids(SPECIAL_TOKENS[-1]))
         for input_name in MODEL_INPUTS:
             tensor = torch.tensor(dataset[input_name])
             tensor_datasets[dataset_name].append(tensor)
@@ -316,13 +312,12 @@ def train():
     # Training function and trainer
     def update(engine, batch):
         model.train()
-        batch = tuple(input_tensor.to(args.device) for input_tensor in batch)
-        cur_input_ids = batch[0]
-        cur_lm_labels = batch[1]
-        cur_token_type_ids = batch[2]
-        model_outputs = model(input_ids=cur_input_ids, labels=cur_lm_labels, token_type_ids=cur_token_type_ids)
-        lm_loss = model_outputs[0]
-        loss = lm_loss / args.gradient_accumulation_steps
+        inputs = tuple(input_tensor.to(args.device) for input_tensor in batch) 
+        cur_input_ids, cur_lm_labels, cur_token_type_ids = inputs
+        outputs = model(input_ids=cur_input_ids, token_type_ids=cur_token_type_ids, labels=cur_lm_labels)
+        loss = outputs[0]
+        if args.gradient_accumulation_steps > 1:
+            loss = loss / args.gradient_accumulation_steps
         if args.fp16:
             with amp.scale_loss(loss, optimizer) as scaled_loss:
                 scaled_loss.backward()
@@ -342,15 +337,14 @@ def train():
         with torch.no_grad():
             batch = tuple(input_tensor.to(args.device) for input_tensor in batch)
             input_ids, lm_labels, token_type_ids = batch
-
-            # logger.info(tokenizer.decode(input_ids[0, :].tolist()))
+            
             model_outputs = model(input_ids, token_type_ids=token_type_ids)
-            lm_logits = model_outputs[0]
+            lm_logits = model_outputs.logits
+            
+            lm_logits_flat = lm_logits.contiguous().view(-1, lm_logits.size(-1))
+            lm_labels_flat = lm_labels.contiguous().view(-1)
 
-            lm_logits_flat_shifted = lm_logits[..., :-1, :].contiguous().view(-1, lm_logits.size(-1))
-            lm_labels_flat_shifted = lm_labels[..., 1:].contiguous().view(-1)
-
-            return lm_logits_flat_shifted, lm_labels_flat_shifted
+            return lm_logits_flat, lm_labels_flat
     evaluator = Engine(inference)
 
     # Attach evaluation to trainer: we evaluate when we start the training and at the end of each epoch
@@ -392,10 +386,12 @@ def train():
         # tb_logger.attach(trainer, log_handler=OptimizerParamsHandler(optimizer), event_name=Events.ITERATION_STARTED)
         # tb_logger.attach(evaluator, log_handler=OutputHandler(tag="validation", metric_names=list(metrics.keys()), another_engine=trainer), event_name=Events.EPOCH_COMPLETED)
 
-        checkpoint_handler = ModelCheckpoint(args.output_dir, 'checkpoint', save_interval=1, n_saved=3)  # !!!NOTICE: if fill exist, it will report error. set require_empty=False can avoid this.
+        checkpoint_handler = ModelCheckpoint(args.output_dir, 'checkpoint', save_interval=None, n_saved=3)  # !!!NOTICE: if fill exist, it will report error. set require_empty=False can avoid this.
         trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_handler, {'mymodel': getattr(model, 'module', model)})  # "getattr" take care of distributed encapsulation
-
-        torch.save(args, args.output_dir + '/model_training_args.bin')
+  
+        model.save_pretrained(args.output_dir)
+  
+        # torch.save(args, args.output_dir + '/model_training_args.bin')
         getattr(model, 'module', model).config.to_json_file(os.path.join(args.output_dir, CONFIG_NAME))
         tokenizer.save_vocabulary(args.output_dir)
 

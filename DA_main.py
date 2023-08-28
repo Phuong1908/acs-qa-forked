@@ -6,10 +6,7 @@ The selected data can be read by QG data loader, and generate questions.
 """
 # !!! for running experiments on Venus
 from config import *
-from common.constants import EXP_PLATFORM, DATA_PATH
-if EXP_PLATFORM.lower() == "venus":
-    from nltk import data
-    data.path.append('./nltk_need/nltk_data/')
+from common.constants import  DATA_PATH
 
 import json
 import nltk
@@ -30,8 +27,8 @@ def normalize_text(text):
 
 
 def wiki2sentences(input_path, output_path, paragraphs_path, max_length=100, min_length=5, max_plength=400, min_plength=5):
-    outfile = open(output_path, 'w', encoding='utf8')
-    outfile_p = open(paragraphs_path, 'w', encoding='utf8')
+    outfile = open(output_path, 'w+', encoding='utf8')
+    outfile_p = open(paragraphs_path, 'w+', encoding='utf8')
     with codecs.open(input_path, encoding='utf8') as infile:
         data = json.load(infile)
     pid = 0
@@ -60,8 +57,8 @@ def wiki2sentences(input_path, output_path, paragraphs_path, max_length=100, min
 
 def squad2sentences(input_path, output_path, paragraphs_path,
                     max_length=100, min_length=5, max_plength=400, min_plength=5):
-    outfile = open(output_path, 'w', encoding='utf8')
-    outfile_p = open(paragraphs_path, 'w', encoding='utf8')
+    outfile = open(output_path, 'w+', encoding='utf8')
+    outfile_p = open(paragraphs_path, 'w+', encoding='utf8')
     with codecs.open(input_path, "r", encoding='utf8') as infile:
         source = json.load(infile)
         pid = 0

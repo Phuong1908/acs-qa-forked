@@ -20,5 +20,6 @@ pytorch-pretrained-bert
 pytorch-transformers
 torchviz
 graphviz
-allennlp==2.10.1
-tensorflow==2.12.0
+allennlp
+tensorflow
+typing_extensions==4.4.0
