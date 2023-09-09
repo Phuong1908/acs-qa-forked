@@ -1,3 +1,5 @@
-Datasets/
+Datasets/*/
 *__pycache__/
 output/
+!Datasets/function_words.txt
+!Datasets/fixed_expressions.txt

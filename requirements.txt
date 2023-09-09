@@ -7,11 +7,11 @@ pandas
 scipy
 sentencepiece
 six
-spacy==3.2.0
+spacy
 textstat
-torch>=1.12.1
+torch >= 2.0
 tqdm
-transformers==4.18.0
+transformers
 visdom
 scikit-learn
 tensorboardX
@@ -20,6 +20,5 @@ pytorch-pretrained-bert
 pytorch-transformers
 torchviz
 graphviz
-allennlp
 tensorflow
 typing_extensions==4.4.0
