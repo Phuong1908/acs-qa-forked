@@ -7,7 +7,7 @@ from tqdm import tqdm
 from collections import Counter
 from .dict_utils import counter2ordered_dict
 from common.constants import NLP, SPM
-from allennlp.modules.elmo import batch_to_ids
+# from allennlp.modules.elmo import batch_to_ids
 
 
 def text2tokens(sentence):
@@ -434,18 +434,18 @@ def update_counters(counters, spacy_doc, tags, increment=1):
     return counters
 
 
-def tokens2ELMOids(tokens, sent_length):
-    """
-    Transform input tokens to elmo ids.
-    :param tokens: a list of words.
-    :param sent_length: padded sent length.
-    :return: numpy array of elmo ids, sent_length * 50
-    """
-    elmo_ids = batch_to_ids([tokens]).squeeze(0)
-    pad_c = (0, 0, 0, sent_length - elmo_ids.size(0))  # assume PAD_id = 0
-    elmo_ids = torch.nn.functional.pad(elmo_ids, pad_c, value=0)
-    elmo_ids = elmo_ids.data.cpu().numpy()
-    return elmo_ids
+# def tokens2ELMOids(tokens, sent_length):
+#     """
+#     Transform input tokens to elmo ids.
+#     :param tokens: a list of words.
+#     :param sent_length: padded sent length.
+#     :return: numpy array of elmo ids, sent_length * 50
+#     """
+#     elmo_ids = batch_to_ids([tokens]).squeeze(0)
+#     pad_c = (0, 0, 0, sent_length - elmo_ids.size(0))  # assume PAD_id = 0
+#     elmo_ids = torch.nn.functional.pad(elmo_ids, pad_c, value=0)
+#     elmo_ids = elmo_ids.data.cpu().numpy()
+#     return elmo_ids
 
 
 def get_dependency_tree_edges(spacy_doc):

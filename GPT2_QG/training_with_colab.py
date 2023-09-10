@@ -48,7 +48,7 @@ logger = logging.getLogger(__file__)
 
 def average_distributed_scalar(scalar, args):
     """ Average a scalar over the nodes if we are in distributed training. We use this for distributed evaluation. """
-    if args.local_rank == -1:
+    if not args.distributed:
         return scalar
     scalar_t = torch.tensor(scalar, dtype=torch.float, device=args.device) / torch.distributed.get_world_size()
     torch.distributed.all_reduce(scalar_t, op=torch.distributed.ReduceOp.SUM)
@@ -281,8 +281,6 @@ def train():
     args.distributed = False
     torch.cuda.set_device(args.local_rank) # todo
     args.device = torch.device("cuda", args.local_rank)
-    if args.distributed:
-        torch.distributed.init_process_group(backend='nccl', init_method='env://', world_size=1, rank=torch.cuda.device_count(), store=None, group_name='')
 
     logger.info("Prepare tokenizer, pretrained model and optimizer - add special tokens for fine-tuning")
 
@@ -380,12 +378,7 @@ def train():
         pbar = ProgressBar(persist=True)
         pbar.attach(trainer, metric_names=["loss"])
         evaluator.add_event_handler(Events.COMPLETED, lambda _: pbar.log_message("Validation: %s" % pformat(evaluator.state.metrics)))
-
-        # tb_logger = TensorboardLogger(log_dir=args.output_dir)
-        # tb_logger.attach(trainer, log_handler=OutputHandler(tag="training", metric_names=["loss"]), event_name=Events.ITERATION_COMPLETED)
-        # tb_logger.attach(trainer, log_handler=OptimizerParamsHandler(optimizer), event_name=Events.ITERATION_STARTED)
-        # tb_logger.attach(evaluator, log_handler=OutputHandler(tag="validation", metric_names=list(metrics.keys()), another_engine=trainer), event_name=Events.EPOCH_COMPLETED)
-
+        
         checkpoint_handler = ModelCheckpoint(args.output_dir, 'checkpoint', save_interval=None, n_saved=3)  # !!!NOTICE: if fill exist, it will report error. set require_empty=False can avoid this.
         trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_handler, {'mymodel': getattr(model, 'module', model)})  # "getattr" take care of distributed encapsulation
   
