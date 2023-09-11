@@ -71,6 +71,7 @@ CUDA_VISIBLE_DEVICES=0 PYTHONIOENCODING=utf-8 python3 QG_gpt2_generate.py \
 
 """
 import os
+import pdb
 import json
 import random
 import tqdm
@@ -88,6 +89,7 @@ from metric.text_generation_metrics import compute_metrics_by_file
 
 
 def top_filtering(logits, top_k=0, top_p=0.0, threshold=-float('Inf'), filter_value=-float('Inf')):
+  
     """ Filter a distribution of logits using top-k, top-p (nucleus) and/or threshold filtering
         Args:
             logits: logits distribution shape (vocabulary size)
@@ -153,7 +155,9 @@ def sample_sequence(inst, tokenizer, model, args, para_cache):
             input_ids = prev.unsqueeze(0)
             token_type_ids = torch.tensor([token_type]).unsqueeze(0).to(args.device)
 
-        logits, past = model(input_ids, token_type_ids=token_type_ids, past=past)
+        tmp = model(input_ids, token_type_ids=token_type_ids, past_key_values=past)
+        logits = tmp[0]
+        past = tmp[1]
 
         logits = logits[0, -1, :] / args.temperature
         logits = top_filtering(logits, top_k=args.top_k, top_p=args.top_p)
@@ -168,7 +172,6 @@ def sample_sequence(inst, tokenizer, model, args, para_cache):
             break
 
         inst['question'].append(prev.item())
-
     return inst
 
 
@@ -254,14 +257,15 @@ def run():
                     token_type_ids = torch.tensor(instance['token_type_ids'], device=args.device).unsqueeze(0)
 
                     # Run a forward pass to generate the para caches
-                    _, para_cache["hidden_states"] = model(input_ids, token_type_ids=token_type_ids)
-
+                    r = model(input_ids, token_type_ids=token_type_ids)
+                    para_cache["hidden_states"] = r[1]
                 # Sample a question using the paragraph cache
                 try:
                     output = sample_sequence(inst, tokenizer, model, args, para_cache)
-                except:  # !!! NOTICE: sometimes (very rare case) the sample_sequence got size mismatch in modeling_gpt2
+                except Exception as e:  # !!! NOTICE: sometimes (very rare case) the sample_sequence got size mismatch in modeling_gpt2
+                    print("The error is: ", e)
                     continue
-
+                  
             original_paragraph = tokenizer.decode(output['paragraph'])
             generated_question = tokenizer.decode(output['question'], skip_special_tokens=True)
             original_answer = tokenizer.decode(output['answer'], skip_special_tokens=True)
