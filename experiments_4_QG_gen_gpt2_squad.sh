@@ -2,7 +2,7 @@
 output_path="/content/acsqg/Datasets/processed/SQuAD2.0/"
 data_file_prefix="train"
 st_idx=0
-ed_idx=50000
+ed_idx=1000
 PYTHONIOENCODING=utf-8 python3 QG_gpt2_generate.py  \
     --model_type gpt2 \
     --model_name_or_path /content/acsqg/Datasets/output/QG/gpt2_question_generation/ \
